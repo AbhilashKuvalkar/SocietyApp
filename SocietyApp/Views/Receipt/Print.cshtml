@@ -17,7 +17,7 @@
 </div>
 
 <!-- Receipt Preview -->
-<div class="page-card" id="receiptPrint" style="max-width:680px;margin:0 auto;font-family:'Times New Roman',serif;">
+<div class="page-card" id="receiptPrint" style="max-width:210mm;margin:0 auto;font-family:'Times New Roman',serif;">
     <!-- Header -->
     <div class="text-center mb-2">
         <h4 class="mb-0 fw-bold text-danger">@society.Name</h4>
@@ -62,13 +62,17 @@
             </tr>
         </thead>
         <tbody>
-            @{ int sno = 1; }
+            @{
+                int sno = 1;
+            }
             @foreach (var item in Model.LineItems.OrderBy(l => l.Particular?.DisplayOrder))
             {
                 <tr>
                     <td class="text-center">@sno</td>
                     <td>@item.Particular?.Name</td>
-                    <td class="text-end">@(item.Amount > 0 ? item.Amount.ToString("N0") : "")</td>
+                    <td class="text-end" style="color:@(item.Amount < 0 ? "red" : "inherit")">
+                        @(item.Amount != 0 ? item.Amount.ToString("N0") : "")
+                    </td>
                 </tr>
                 sno++;
             }
@@ -82,9 +86,16 @@
     </table>
 
     <!-- Period -->
-    <div class="mb-3 d-flex align-items-center gap-2">
-        <span>Received for the month of</span>
-        <span class="border px-3 py-1">@Model.FinancialYear (Q@(Model.Quarter))</span>
+    <div class="mb-3 d-flex align-items-center">
+        <div class="flex-col pe-2">
+            <span>Received for the month of&nbsp;</span>
+            <span class="fw-bold">@Model.FinancialYear (Q@(Model.Quarter))</span>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Remarks))
+        {
+            <div class="border-start ps-2 flex-col"><strong>Remarks:</strong> @Model.Remarks</div>
+        }
     </div>
 
     <!-- Footer: Rs Box + Signatures -->
@@ -103,15 +114,42 @@
         </div>
     </div>
 
-    <div class="text-center mt-3 small fst-italic border-top pt-2">
+    <div id="receiptFooterNote" class="text-center mt-3 small fst-italic border-top pt-2">
         Receipt Subject to the Realisation of the cheque
     </div>
 </div>
 
 <style>
-@@media print {
-    .no-print, .sidebar, .topbar { display: none !important; }
-    .main-content { margin: 0 !important; padding: 0 !important; }
-    #receiptPrint { box-shadow: none !important; max-width: 100% !important; }
-}
+    @@media print {
+
+        .no-print,
+        .sidebar,
+        .topbar {
+            display: none !important;
+        }
+
+        .main-content {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        #receiptPrint {
+            box-shadow: none !important;
+            max-width: 100% !important;
+            width: 210mm;
+            min-height: 297mm;
+            padding: 16mm !important;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #receiptFooterNote {
+            margin-top: auto;
+        }
+
+        @@page {
+            size: A4;
+            margin: 0;
+        }
+    }
 </style>

@@ -7,7 +7,7 @@ namespace SocietyApp.Services
 {
     public class PdfService
     {
-        private static readonly string BorderColor = "#000000";
+        private static readonly string BorderColor = "#dee2e6";
         private static readonly string MutedColor = "#6c757d";
 
         public byte[] GenerateReceipt(Receipt receipt)
@@ -21,7 +21,7 @@ namespace SocietyApp.Services
             {
                 container.Page(page =>
                 {
-                    page.Size(PageSizes.A5);
+                    page.Size(PageSizes.A4);
                     page.Margin(18);
                     page.DefaultTextStyle(t => t.FontFamily("Times New Roman").FontSize(10));
 
@@ -98,7 +98,11 @@ namespace SocietyApp.Services
                                     .Padding(4).Text(item.Particular?.Name ?? "").FontSize(9);
                                 table.Cell().BorderRight(1).BorderBottom(0.5f).BorderColor(BorderColor)
                                     .Padding(4).AlignRight()
-                                    .Text(item.Amount > 0 ? item.Amount.ToString("N0") : "").FontSize(9);
+                                    .Text(txt =>
+                                    {
+                                        var span = txt.Span(item.Amount != 0 ? item.Amount.ToString("N0") : "").FontSize(9);
+                                        if (item.Amount < 0) span.FontColor("#cc0000");
+                                    });
                             }
 
                             table.Cell().ColumnSpan(2).Border(1).BorderColor(BorderColor)
@@ -107,15 +111,18 @@ namespace SocietyApp.Services
                                 .Padding(4).AlignRight().Text(receipt.TotalAmount.ToString("N0")).Bold().FontSize(9);
                         });
 
-                        // ── Period ────────────────────────────────────────────────
-                        col.Item().PaddingBottom(10).Row(row =>
+                        col.Item().PaddingBottom(20).Row(row =>
                         {
-                            row.AutoItem().AlignMiddle().Text("Received for the month of");
-                            row.ConstantItem(8);  // gap between label and bordered box
-                            row.AutoItem().Border(1).BorderColor(BorderColor).Padding(4)
-                                .Text($"{receipt.FinancialYear} (Q{receipt.Quarter})");
-                        });
+                            row.AutoItem().Text("Received for the month of ");
+                            row.RelativeItem().PaddingLeft(4).Text($"{receipt.FinancialYear} (Q{receipt.Quarter})").Bold();
 
+                            if (!string.IsNullOrEmpty(receipt.Remarks))
+                            {
+                                row.RelativeItem().BorderLeft(1).BorderColor(BorderColor).PaddingLeft(10).Text("Remarks: ").Bold();
+                                row.RelativeItem().Padding(0).Text(receipt.Remarks);
+                            }
+                        });
+                        
                         // ── Footer: Rs Box + Signatures ───────────────────────────
                         col.Item().Row(row =>
                         {
