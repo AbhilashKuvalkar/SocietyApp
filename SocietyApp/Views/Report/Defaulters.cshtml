@@ -1,0 +1,95 @@
+﻿@model List<SocietyApp.Models.Member>
+@{
+    ViewData["Title"] = "Defaulters";
+    var year = ViewBag.Year as string ?? "";
+    var quarter = ViewBag.Quarter as int? ?? 1;
+    var currentYear = DateTime.Now.Year;
+    var years = Enumerable.Range(currentYear - 2, 4).Select(y => $"{y}-{y + 1}");
+}
+
+<!-- Filters -->
+<form method="get" class="row g-2 align-items-end mb-4">
+    <div class="col-auto">
+        <label class="form-label small fw-semibold mb-1">Financial Year</label>
+        <select name="year" class="form-select form-select-sm">
+            @foreach (var y in years)
+            {
+                <option value="@y" selected="@(y == year)">@y</option>
+            }
+        </select>
+    </div>
+    <div class="col-auto">
+        <label class="form-label small fw-semibold mb-1">Quarter</label>
+        <select name="quarter" class="form-select form-select-sm">
+            @for (int q = 1; q <= 4; q++)
+            {
+                <option value="@q" selected="@(quarter == q)">Q@(q)</option>
+            }
+        </select>
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-sm btn-outline-primary">Apply</button>
+    </div>
+</form>
+
+<div class="page-card">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h6 class="mb-1 fw-bold">
+                Members with no paid receipt
+                <span class="text-muted fw-normal small ms-1">@year — Q@(quarter)</span>
+            </h6>
+            <p class="text-muted small mb-0">
+                @if (Model.Any())
+                {
+                    <span class="text-danger fw-semibold">@Model.Count defaulter(s) found</span>
+                }
+                else
+                {
+                    <span class="text-success fw-semibold">All members are paid up for this period.</span>
+                }
+            </p>
+        </div>
+    </div>
+
+    @if (Model.Any())
+    {
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Flat No.</th>
+                    <th>Member Name</th>
+                    <th>Type</th>
+                    <th>Phone</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var m in Model)
+                {
+                    <tr>
+                        <td><span class="badge bg-danger">@m.FlatNumber</span></td>
+                        <td class="fw-semibold">@m.Name</td>
+                        <td>
+                            @if (m.TenantType == SocietyApp.Models.TenantType.Permanent)
+                            {
+                                <span class="badge bg-success">Permanent</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning text-dark">Temporary</span>
+                            }
+                        </td>
+                        <td class="text-muted small">@(m.Phone ?? "—")</td>
+                        <td>
+                            <a asp-controller="Receipt" asp-action="Create"
+                                   class="btn btn-sm btn-outline-success">
+                                <i class="bi bi-plus-circle me-1"></i> Generate Receipt
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

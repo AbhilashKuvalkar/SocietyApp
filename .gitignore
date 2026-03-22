@@ -416,3 +416,10 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# User Secrets & local config overrides
+appsettings.Development.json
+secrets.json
+
+# ASP.NET Core Data Protection keys
+DataProtection-Keys/

@@ -1,0 +1,67 @@
+﻿@model SocietyApp.Services.CollectionSummary
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="page-card text-center border-start border-success border-4">
+            <div class="text-muted small mb-1">Collected this year</div>
+            <div class="fw-bold fs-3 text-success">₹@Model.TotalCollected.ToString("N0")</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="page-card text-center border-start border-warning border-4">
+            <div class="text-muted small mb-1">Pending / Dues</div>
+            <div class="fw-bold fs-3 text-warning">₹@Model.TotalPending.ToString("N0")</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="page-card text-center border-start border-primary border-4">
+            <div class="text-muted small mb-1">Receipts Issued</div>
+            <div class="fw-bold fs-3 text-primary">@Model.ReceiptCount</div>
+        </div>
+    </div>
+</div>
+
+<div class="page-card">
+    <h6 class="fw-bold mb-3">Collection by Particular</h6>
+    @if (Model.ParticularBreakdown.Any())
+    {
+        <table class="table table-sm">
+            <thead><tr><th>Particular</th><th class="text-end">Total Collected</th></tr></thead>
+            <tbody>
+                @foreach (var p in Model.ParticularBreakdown)
+                {
+                    <tr>
+                        <td>@p.Name</td>
+                        <td class="text-end fw-semibold">₹@p.Total.ToString("N0")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p class="text-muted">No receipts found for the current financial year.</p>
+    }
+</div>
+
+<div class="row g-3 mt-1">
+    <div class="col-md-6">
+        <div class="page-card">
+            <h6 class="fw-bold mb-3">Quick Actions</h6>
+            <div class="d-grid gap-2">
+                <a asp-controller="Receipt" asp-action="Create" class="btn btn-success">
+                    <i class="bi bi-plus-circle me-2"></i>Generate New Receipt
+                </a>
+                <a asp-controller="Member" asp-action="Create" class="btn btn-outline-primary">
+                    <i class="bi bi-person-plus me-2"></i>Add New Member
+                </a>
+                <a asp-controller="Report" asp-action="Defaulters" class="btn btn-outline-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>View Defaulters
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

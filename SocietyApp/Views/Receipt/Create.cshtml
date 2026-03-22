@@ -1,0 +1,128 @@
+﻿@model SocietyApp.Models.Receipt
+@{
+    ViewData["Title"] = "New Receipt";
+    var members = ViewBag.Members as List<SocietyApp.Models.Member> ?? new();
+    var particulars = ViewBag.Particulars as List<SocietyApp.Models.Particular> ?? new();
+    var quarters = new[] { ("Q1", "April–June"), ("Q2", "July–September"), ("Q3", "October–December"), ("Q4", "January–March") };
+    var now = DateTime.Now;
+    var fyStart = now.Month >= 4 ? now.Year : now.Year - 1;
+    var currentFY = $"{fyStart}-{fyStart + 1}";
+    var years = Enumerable.Range(fyStart - 2, 5).Select(y => $"{y}-{y + 1}");
+    var currentQuarter = now.Month switch { >= 4 and <= 6 => 1, >= 7 and <= 9 => 2, >= 10 and <= 12 => 3, _ => 4 };
+}
+
+<div class="page-card">
+    <form method="post" id="receiptForm">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="SocietyId" />
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Member / Flat</label>
+                <select asp-for="MemberId" class="form-select" required>
+                    <option value="">-- Select Member --</option>
+                    @foreach (var m in members)
+                    {
+                        <option value="@m.Id">Flat @m.FlatNumber – @m.Salutation. @m.Name (@m.TenantType)</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Financial Year</label>
+                <select asp-for="FinancialYear" class="form-select" required>
+                    @foreach (var y in years)
+                    {
+                        <option value="@y" selected="@(y == currentFY)">@y</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Quarter</label>
+                <select asp-for="Quarter" class="form-select" required>
+                    @for (int i = 0; i < quarters.Length; i++)
+                    {
+                        <option value="@(i + 1)" selected="@(i + 1 == currentQuarter)">Q@(i + 1) – @quarters[i].Item2</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Receipt Date</label>
+                <input asp-for="ReceiptDate" type="date" class="form-control" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Payment Mode</label>
+                <select asp-for="PaymentMode" class="form-select">
+                    @foreach (var mode in Enum.GetValues<SocietyApp.Models.PaymentMode>())
+                    {
+                        <option value="@mode">@mode</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Cheque / NEFT / UPI Ref.</label>
+                <input asp-for="PaymentReference" class="form-control" placeholder="Optional" />
+            </div>
+        </div>
+
+        <!-- Particulars Table -->
+        <h6 class="fw-bold mb-3">Particulars</h6>
+        <table class="table table-bordered">
+            <thead class="table-light">
+                <tr>
+                    <th>S.No.</th>
+                    <th>Particulars</th>
+                    <th style="width:160px">Amount (₹)</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < particulars.Count; i++)
+                {
+                    var p = particulars[i];
+                    <tr>
+                        <td class="text-center align-middle">@(i + 1)</td>
+                        <td class="align-middle">
+                            @p.Name
+                            <input type="hidden" name="lineItems[@i].ParticularId" value="@p.Id" />
+                        </td>
+                        <td>
+                            <input type="number" name="lineItems[@i].Amount" class="form-control amount-input"
+                                   value="@p.DefaultAmount.ToString("0")"
+                                   min="0" step="0.01" placeholder="0"
+                                   oninput="updateTotal()" />
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr class="table-primary">
+                    <td colspan="2" class="text-end fw-bold">TOTAL</td>
+                    <td><strong id="totalDisplay" class="fs-5">₹0</strong></td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Remarks (optional)</label>
+            <textarea asp-for="Remarks" class="form-control" rows="2"></textarea>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-success">
+                <i class="bi bi-receipt me-1"></i> Generate Receipt
+            </button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        function updateTotal() {
+            const inputs = document.querySelectorAll('.amount-input');
+            let total = 0;
+            inputs.forEach(inp => total += parseFloat(inp.value) || 0);
+            document.getElementById('totalDisplay').textContent = '₹' + total.toLocaleString('en-IN');
+        }
+        updateTotal();
+    </script>
+}

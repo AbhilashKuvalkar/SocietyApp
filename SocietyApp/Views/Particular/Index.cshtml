@@ -1,0 +1,75 @@
+﻿@model List<SocietyApp.Models.Particular>
+@{
+    ViewData["Title"] = "Particulars";
+}
+
+<div class="page-card">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h6 class="mb-1 fw-bold">Charge Particulars</h6>
+            <p class="text-muted small mb-0">Line items that appear on every receipt</p>
+        </div>
+        <a asp-action="Create" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i> Add Particular
+        </a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-list-ul fs-1 d-block mb-2"></i>
+            No particulars found. <a asp-action="Create">Add one.</a>
+        </div>
+    }
+    else
+    {
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th style="width:60px">Order</th>
+                    <th>Particular Name</th>
+                    <th style="width:160px">Default Amount (Rs.)</th>
+                    <th style="width:80px">Status</th>
+                    <th style="width:120px">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in Model)
+                {
+                    <tr>
+                        <td class="text-center text-muted">@p.DisplayOrder</td>
+                        <td class="fw-semibold">@p.Name</td>
+                        <td>
+                            @if (p.DefaultAmount > 0)
+                            {
+                                <span>&#8377;@p.DefaultAmount.ToString("N0")</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">—</span>
+                            }
+                        </td>
+                        <td>
+                            @if (p.IsActive)
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Inactive</span>
+                            }
+                        </td>
+                        <td>
+                            <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+                            <form asp-action="Delete" asp-route-id="@p.Id" method="post" class="d-inline"
+                                  onsubmit="return confirm('Delete @p.Name?')">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Del</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

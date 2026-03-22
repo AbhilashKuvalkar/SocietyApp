@@ -1,0 +1,70 @@
+﻿@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Login";
+}
+<div class="d-flex justify-content-center align-items-center" style="min-height:100vh;background:#f0f4f8;">
+    <div class="card shadow" style="width:400px;border:none;border-radius:14px;">
+        <div class="card-body p-4">
+            <div class="text-center mb-4">
+                <div style="font-size:36px;">&#127970;</div>
+                <h4 class="fw-bold mt-2 mb-1">Society Manager</h4>
+                <p class="text-muted small mb-0">Sign in to continue</p>
+            </div>
+
+            <form method="post">
+                @Html.AntiForgeryToken()
+
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger py-2 small">
+                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <div>@error.ErrorMessage</div>
+                        }
+                    </div>
+                }
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Email</label>
+                    <input type="email" name="email" id="email" class="form-control" required autofocus />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Password</label>
+                    <input type="password" name="password" class="form-control" required />
+                </div>
+
+                <div class="mb-4" id="societyCodeField" style="display:none;">
+                    <label class="form-label small fw-semibold">Society Code</label>
+                    <input type="text" name="societyCode" id="societyCode" class="form-control"
+                           placeholder="e.g. GREENPARK" />
+                    <div class="form-text">Unique code assigned to your society</div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">Sign In</button>
+            </form>
+
+            <div class="text-center mt-3">
+                <a href="#" id="toggleSocietyCode" class="text-muted small">
+                    Sign in with society code
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const field = document.getElementById('societyCodeField');
+        const codeInput = document.getElementById('societyCode');
+        const toggle = document.getElementById('toggleSocietyCode');
+
+        toggle.addEventListener('click', function (e) {
+            e.preventDefault();
+            const visible = field.style.display !== 'none';
+            field.style.display = visible ? 'none' : 'block';
+            codeInput.required = !visible;
+            toggle.textContent = visible ? 'Sign in with society code' : 'Sign in without society code';
+        });
+    </script>
+}

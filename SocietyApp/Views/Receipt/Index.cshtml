@@ -1,0 +1,134 @@
+﻿@model List<SocietyApp.Models.Receipt>
+@{
+    ViewData["Title"] = "Receipts";
+    var year = ViewBag.Year as string ?? "";
+    var quarter = ViewBag.Quarter as int?;
+    var currentYear = DateTime.Now.Year;
+    var years = Enumerable.Range(currentYear - 2, 4).Select(y => $"{y}-{y + 1}");
+}
+
+<div class="page-card">
+    <!-- Filters -->
+    <form method="get" class="row g-2 align-items-end mb-4">
+        <div class="col-auto">
+            <label class="form-label small fw-semibold mb-1">Financial Year</label>
+            <select name="year" class="form-select form-select-sm">
+                <option value="">All Years</option>
+                @foreach (var y in years)
+                {
+                    <option value="@y" selected="@(y == year)">@y</option>
+                }
+            </select>
+        </div>
+        <div class="col-auto">
+            <label class="form-label small fw-semibold mb-1">Quarter</label>
+            <select name="quarter" class="form-select form-select-sm">
+                <option value="">All Quarters</option>
+                @for (int q = 1; q <= 4; q++)
+                {
+                    <option value="@q" selected="@(quarter == q)">Q@(q)</option>
+                }
+            </select>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-sm btn-outline-primary">Filter</button>
+            <a asp-action="Index" class="btn btn-sm btn-outline-secondary ms-1">Clear</a>
+        </div>
+        <div class="col-auto ms-auto d-flex gap-2">
+            @if (!string.IsNullOrEmpty(year) && quarter.HasValue)
+            {
+                <a asp-action="BulkPrint" asp-route-year="@year" asp-route-quarter="@quarter"
+                       class="btn btn-sm btn-outline-secondary" target="_blank">
+                    <i class="bi bi-printer me-1"></i> Bulk Print
+                </a>
+            }
+            <a asp-action="Create" class="btn btn-sm btn-primary">
+                <i class="bi bi-plus-lg me-1"></i> New Receipt
+            </a>
+        </div>
+    </form>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-receipt fs-1 d-block mb-2"></i>
+            No receipts found for the selected filters.
+        </div>
+    }
+    else
+    {
+        <!-- Summary strip -->
+        <div class="d-flex gap-3 mb-3">
+            <span class="small text-muted">@Model.Count receipt(s)</span>
+            <span class="small text-success fw-semibold">
+                Collected: &#8377;@Model.Where(r => r.PaymentStatus == SocietyApp.Models.PaymentStatus.Paid).Sum(r => r.TotalAmount).ToString("N0")
+            </span>
+            <span class="small text-warning fw-semibold">
+                Pending: &#8377;@Model.Where(r => r.PaymentStatus != SocietyApp.Models.PaymentStatus.Paid).Sum(r => r.TotalAmount).ToString("N0")
+            </span>
+        </div>
+
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Receipt No.</th>
+                    <th>Date</th>
+                    <th>Member / Flat</th>
+                    <th>Period</th>
+                    <th>Mode</th>
+                    <th>Status</th>
+                    <th class="text-end">Amount</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in Model)
+                {
+                    <tr>
+                        <td class="fw-semibold">@r.ReceiptNumber</td>
+                        <td class="text-muted small">@r.ReceiptDate.ToString("dd MMM yyyy")</td>
+                        <td>
+                            <div>@r.Member?.Name</div>
+                            <div class="text-muted small">Flat @r.Member?.FlatNumber</div>
+                        </td>
+                        <td class="small">@r.FinancialYear<br /><span class="text-muted">Q@(r.Quarter)</span></td>
+                        <td><span class="badge bg-light text-dark border">@r.PaymentMode</span></td>
+                        <td>
+                            @switch (r.PaymentStatus)
+                            {
+                                case SocietyApp.Models.PaymentStatus.Paid:
+                                    <span class="badge bg-success">Paid</span>
+                                    break;
+                                case SocietyApp.Models.PaymentStatus.Pending:
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                    break;
+                                case SocietyApp.Models.PaymentStatus.Partial:
+                                    <span class="badge bg-info text-dark">Partial</span>
+                                    break;
+                                case SocietyApp.Models.PaymentStatus.Overdue:
+                                    <span class="badge bg-danger">Overdue</span>
+                                    break;
+                            }
+                        </td>
+                        <td class="text-end fw-semibold">&#8377;@r.TotalAmount.ToString("N0")</td>
+                        <td>
+                            <a asp-action="Print" asp-route-id="@r.Id" class="btn btn-sm btn-outline-secondary" title="View">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a asp-action="DownloadPdf" asp-route-id="@r.Id" class="btn btn-sm btn-outline-danger" title="PDF">
+                                <i class="bi bi-file-pdf"></i>
+                            </a>
+                            <form asp-action="Delete" asp-route-id="@r.Id" method="post" class="d-inline"
+                                  onsubmit="return confirm('Delete receipt @r.ReceiptNumber?')">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

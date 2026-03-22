@@ -1,0 +1,117 @@
+﻿@model SocietyApp.Models.Receipt
+@using SocietyApp.Services
+@{
+    ViewData["Title"] = $"Receipt {Model.ReceiptNumber}";
+    var society = Model.Society!;
+    var member = Model.Member!;
+}
+
+<div class="d-flex justify-content-end gap-2 mb-3 no-print">
+    <a href="@Url.Action("DownloadPdf", new { id = Model.Id })" class="btn btn-danger">
+        <i class="bi bi-file-pdf me-1"></i> Download PDF
+    </a>
+    <button onclick="window.print()" class="btn btn-secondary">
+        <i class="bi bi-printer me-1"></i> Print
+    </button>
+    <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+</div>
+
+<!-- Receipt Preview -->
+<div class="page-card" id="receiptPrint" style="max-width:680px;margin:0 auto;font-family:'Times New Roman',serif;">
+    <!-- Header -->
+    <div class="text-center mb-2">
+        <h4 class="mb-0 fw-bold text-danger">@society.Name</h4>
+        <div class="small">(Reg. No. @society.RegistrationNumber)</div>
+        <div class="small fst-italic">@society.Address</div>
+    </div>
+
+    <hr class="my-2" style="border-top:2px solid #000;" />
+
+    <!-- Receipt No + Date -->
+    <div class="d-flex justify-content-between mb-2">
+        <span>Receipt No.: <strong class="d-none">@Model.ReceiptNumber</strong></span>
+        <span><strong>Date: @Model.ReceiptDate.ToString("dd-MM-yyyy")</strong></span>
+    </div>
+
+    <!-- Member + Payment Reference -->
+    <table class="table table-bordered mb-2" style="font-size:14px;">
+        <tr>
+            <td style="width:60%">
+                <div><strong>@member.Salutation. @member.Name</strong></div>
+                <div>Flat No. @member.FlatNumber</div>
+            </td>
+            <td>
+                <div class="small text-muted">Cheque/NEFT/IMPS Reference</div>
+                <div><strong>@(Model.PaymentReference ?? "—")</strong></div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Amount in Words -->
+    <div class="mb-2">
+        <strong>Rupees in words:</strong> @ReceiptService.AmountToWords(Model.TotalAmount)
+    </div>
+
+    <!-- Line Items -->
+    <table class="table table-bordered mb-2" style="font-size:14px;">
+        <thead>
+            <tr class="text-center">
+                <th style="width:50px">S.No.</th>
+                <th class="text-start">PARTICULARS</th>
+                <th style="width:100px">AMOUNT Rs.</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{ int sno = 1; }
+            @foreach (var item in Model.LineItems.OrderBy(l => l.Particular?.DisplayOrder))
+            {
+                <tr>
+                    <td class="text-center">@sno</td>
+                    <td>@item.Particular?.Name</td>
+                    <td class="text-end">@(item.Amount > 0 ? item.Amount.ToString("N0") : "")</td>
+                </tr>
+                sno++;
+            }
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="2" class="text-end fw-bold">TOTAL</td>
+                <td class="text-end fw-bold">@Model.TotalAmount.ToString("N0")</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <!-- Period -->
+    <div class="mb-3 d-flex align-items-center gap-2">
+        <span>Received for the month of</span>
+        <span class="border px-3 py-1">@Model.FinancialYear (Q@(Model.Quarter))</span>
+    </div>
+
+    <!-- Footer: Rs Box + Signatures -->
+    <div class="d-flex gap-4 align-items-start">
+        <div class="border border-2 border-dark p-3 text-center" style="min-width:120px;">
+            <div class="fw-bold">Rs.</div>
+            <div class="fw-bold fs-3">@Model.TotalAmount.ToString("N0")</div>
+        </div>
+        <div class="flex-grow-1 text-end">
+            <div class="small mb-4">For <strong>@society.Name</strong></div>
+            <div class="d-flex justify-content-around">
+                <div class="text-center small">Secretary</div>
+                <div class="text-center small">Chairman</div>
+                <div class="text-center small">Treasurer</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-3 small fst-italic border-top pt-2">
+        Receipt Subject to the Realisation of the cheque
+    </div>
+</div>
+
+<style>
+@@media print {
+    .no-print, .sidebar, .topbar { display: none !important; }
+    .main-content { margin: 0 !important; padding: 0 !important; }
+    #receiptPrint { box-shadow: none !important; max-width: 100% !important; }
+}
+</style>

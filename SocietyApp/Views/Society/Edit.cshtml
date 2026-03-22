@@ -1,0 +1,49 @@
+﻿@model SocietyApp.Models.Society
+@{
+    ViewData["Title"] = "Edit Society";
+}
+
+<div class="page-card" style="max-width:680px;">
+    <form method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="CreatedAt" />
+
+        <div class="row g-3">
+            <div class="col-12">
+                <label class="form-label fw-semibold">Society Name</label>
+                <input asp-for="Name" class="form-control" required />
+                <span asp-validation-for="Name" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Society Code</label>
+                <input asp-for="SocietyCode" class="form-control text-uppercase" required />
+                <div class="form-text">Changing this will affect login for all users of this society.</div>
+                <span asp-validation-for="SocietyCode" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Registration Number</label>
+                <input asp-for="RegistrationNumber" class="form-control" required />
+                <span asp-validation-for="RegistrationNumber" class="text-danger small"></span>
+            </div>
+            <div class="col-12">
+                <label class="form-label fw-semibold">Address</label>
+                <textarea asp-for="Address" class="form-control" rows="2" required></textarea>
+                <span asp-validation-for="Address" class="text-danger small"></span>
+            </div>
+            <div class="col-md-4">
+                <div class="form-check mt-2">
+                    <input asp-for="IsActive" type="checkbox" class="form-check-input" />
+                    <label class="form-check-label fw-semibold" asp-for="IsActive">Active</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 d-flex gap-2">
+            <button type="submit" class="btn btn-success">
+                <i class="bi bi-check-lg me-1"></i> Save Changes
+            </button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+    </form>
+</div>

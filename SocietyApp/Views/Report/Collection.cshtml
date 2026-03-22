@@ -1,0 +1,109 @@
+﻿@model SocietyApp.Services.CollectionSummary
+@{
+    ViewData["Title"] = "Collection Report";
+    var year = ViewBag.Year as string ?? "";
+    var quarter = ViewBag.Quarter as int?;
+    var currentYear = DateTime.Now.Year;
+    var years = Enumerable.Range(currentYear - 2, 4).Select(y => $"{y}-{y + 1}");
+}
+
+<!-- Filters -->
+<form method="get" class="row g-2 align-items-end mb-4">
+    <div class="col-auto">
+        <label class="form-label small fw-semibold mb-1">Financial Year</label>
+        <select name="year" class="form-select form-select-sm">
+            @foreach (var y in years)
+            {
+                <option value="@y" selected="@(y == year)">@y</option>
+            }
+        </select>
+    </div>
+    <div class="col-auto">
+        <label class="form-label small fw-semibold mb-1">Quarter</label>
+        <select name="quarter" class="form-select form-select-sm">
+            <option value="">Full Year</option>
+            @for (int q = 1; q <= 4; q++)
+            {
+                <option value="@q" selected="@(quarter == q)">Q@(q)</option>
+            }
+        </select>
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-sm btn-outline-primary">Apply</button>
+    </div>
+</form>
+
+<!-- Summary cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="page-card text-center border-start border-success border-4">
+            <div class="text-muted small mb-1">Total Collected</div>
+            <div class="fw-bold fs-3 text-success">&#8377;@Model.TotalCollected.ToString("N0")</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="page-card text-center border-start border-warning border-4">
+            <div class="text-muted small mb-1">Pending / Dues</div>
+            <div class="fw-bold fs-3 text-warning">&#8377;@Model.TotalPending.ToString("N0")</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="page-card text-center border-start border-primary border-4">
+            <div class="text-muted small mb-1">Receipts Issued</div>
+            <div class="fw-bold fs-3 text-primary">@Model.ReceiptCount</div>
+        </div>
+    </div>
+</div>
+
+<!-- Particular breakdown -->
+<div class="page-card">
+    <h6 class="fw-bold mb-3">
+        Collection by Particular
+        <span class="text-muted fw-normal small ms-2">
+            @year @(quarter.HasValue ? $"— Q{quarter}" : "— Full Year")
+        </span>
+    </h6>
+
+    @if (!Model.ParticularBreakdown.Any())
+    {
+        <p class="text-muted">No receipts found for the selected period.</p>
+    }
+    else
+    {
+        var grandTotal = Model.ParticularBreakdown.Sum(p => p.Total);
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Particular</th>
+                    <th class="text-end">Amount Collected</th>
+                    <th style="width:180px">Share</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in Model.ParticularBreakdown)
+                {
+                    var pct = grandTotal > 0 ? (double)(p.Total / grandTotal) * 100 : 0;
+                    <tr>
+                        <td>@p.Name</td>
+                        <td class="text-end fw-semibold">&#8377;@p.Total.ToString("N0")</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="progress flex-grow-1" style="height:6px;">
+                                    <div class="progress-bar bg-primary" style="width:@pct.ToString("0.0")%"></div>
+                                </div>
+                                <span class="small text-muted" style="min-width:36px;">@pct.ToString("0")%</span>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr class="table-light">
+                    <td class="fw-bold">Total</td>
+                    <td class="text-end fw-bold">&#8377;@grandTotal.ToString("N0")</td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    }
+</div>

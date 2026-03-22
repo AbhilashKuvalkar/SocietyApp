@@ -1,0 +1,104 @@
+﻿@model SocietyApp.Models.Member
+@{
+    ViewData["Title"] = "Edit Member";
+    var societies = ViewBag.Societies as List<SocietyApp.Models.Society> ?? new();
+    var isSuperAdmin = !User.HasClaim("SocietyId", Model.SocietyId.ToString());
+}
+
+<div class="page-card" style="max-width:700px;">
+    <form method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+
+        <div class="row g-3">
+            <div class="col-12">
+                <label class="form-label fw-semibold">Society</label>
+                @if (isSuperAdmin)
+                {
+                    <select asp-for="SocietyId" class="form-select" required>
+                        <option value="">-- Select Society --</option>
+                        @foreach (var s in societies)
+                        {
+                            <option value="@s.Id" selected="@(s.Id == Model.SocietyId)">@s.Name (@s.SocietyCode)</option>
+                        }
+                    </select>
+                }
+                else
+                {
+                    <input type="hidden" asp-for="SocietyId" />
+                    <input class="form-control" value="@(societies.FirstOrDefault(s => s.Id == Model.SocietyId)?.Name ?? "Your Society")" disabled />
+                }
+            </div>
+            <div class="col-md-2">
+                <label class="form-label fw-semibold">Title</label>
+                <select asp-for="Salutation" class="form-select">
+                    <option value="Mr">Mr.</option>
+                    <option value="Mrs">Mrs.</option>
+                    <option value="Ms">Ms.</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Full Name</label>
+                <input asp-for="Name" class="form-control" required />
+                <span asp-validation-for="Name" class="text-danger small"></span>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Flat Number</label>
+                <input asp-for="FlatNumber" class="form-control" required />
+                <span asp-validation-for="FlatNumber" class="text-danger small"></span>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Tenant Type</label>
+                <select asp-for="TenantType" class="form-select" id="tenantTypeSelect">
+                    <option value="Permanent">Permanent (Owner)</option>
+                    <option value="Temporary">Temporary (Tenant / Sublet)</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Phone <span class="text-muted fw-normal">(optional)</span></label>
+                <input asp-for="Phone" class="form-control" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Email <span class="text-muted fw-normal">(optional)</span></label>
+                <input asp-for="Email" type="email" class="form-control" />
+            </div>
+            <div class="col-md-8" id="ownerNameRow">
+                <label class="form-label fw-semibold">Owner Name <span class="text-muted fw-normal">(if sublet)</span></label>
+                <input asp-for="OwnerName" class="form-control" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Move-in Date <span class="text-muted fw-normal">(optional)</span></label>
+                <input asp-for="MoveInDate" type="date" class="form-control" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Move-out Date <span class="text-muted fw-normal">(optional)</span></label>
+                <input asp-for="MoveOutDate" type="date" class="form-control" />
+            </div>
+            <div class="col-md-4">
+                <div class="form-check mt-2">
+                    <input asp-for="IsActive" type="checkbox" class="form-check-input" />
+                    <label class="form-check-label fw-semibold" asp-for="IsActive">Active</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 d-flex gap-2">
+            <button type="submit" class="btn btn-success">
+                <i class="bi bi-check-lg me-1"></i> Save Changes
+            </button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        const sel = document.getElementById('tenantTypeSelect');
+        const ownerRow = document.getElementById('ownerNameRow');
+        function toggleOwner() {
+            ownerRow.style.display = sel.value === 'Temporary' ? 'block' : 'none';
+        }
+        sel.addEventListener('change', toggleOwner);
+        toggleOwner();
+    </script>
+}

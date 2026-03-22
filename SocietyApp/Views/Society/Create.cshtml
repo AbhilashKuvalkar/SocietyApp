@@ -1,0 +1,42 @@
+﻿@model SocietyApp.Models.Society
+@{
+    ViewData["Title"] = "Add Society";
+}
+
+<div class="page-card" style="max-width:680px;">
+    <form method="post">
+        @Html.AntiForgeryToken()
+
+        <div class="row g-3">
+            <div class="col-12">
+                <label class="form-label fw-semibold">Society Name</label>
+                <input asp-for="Name" class="form-control" placeholder="e.g. Green Park Co-Op Hsg. Soc. Ltd." required />
+                <span asp-validation-for="Name" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Society Code</label>
+                <input asp-for="SocietyCode" class="form-control text-uppercase" placeholder="e.g. GREENPARK" required />
+                <div class="form-text">Used for login — must be unique.</div>
+                <span asp-validation-for="SocietyCode" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Registration Number</label>
+                <input asp-for="RegistrationNumber" class="form-control" placeholder="e.g. MH/MUM/2001/1234" required />
+                <span asp-validation-for="RegistrationNumber" class="text-danger small"></span>
+            </div>
+            <div class="col-12">
+                <label class="form-label fw-semibold">Address</label>
+                <textarea asp-for="Address" class="form-control" rows="2" required
+                          placeholder="Plot No., Sector, Area, City – PIN"></textarea>
+                <span asp-validation-for="Address" class="text-danger small"></span>
+            </div>
+        </div>
+
+        <div class="mt-4 d-flex gap-2">
+            <button type="submit" class="btn btn-success">
+                <i class="bi bi-check-lg me-1"></i> Create Society
+            </button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+    </form>
+</div>

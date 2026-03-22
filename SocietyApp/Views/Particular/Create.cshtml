@@ -1,0 +1,36 @@
+﻿@model SocietyApp.Models.Particular
+@{
+    ViewData["Title"] = "Add Particular";
+}
+
+<div class="page-card" style="max-width:560px;">
+    <form method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="SocietyId" />
+
+        <div class="row g-3">
+            <div class="col-12">
+                <label class="form-label fw-semibold">Particular Name</label>
+                <input asp-for="Name" class="form-control" placeholder="e.g. Municipal Taxes" required />
+                <span asp-validation-for="Name" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Default Amount (Rs.)</label>
+                <input asp-for="DefaultAmount" type="number" min="0" step="0.01" class="form-control" placeholder="0" />
+                <div class="form-text">Pre-filled when generating a receipt. Can be overridden.</div>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Display Order</label>
+                <input asp-for="DisplayOrder" type="number" min="1" class="form-control" placeholder="e.g. 1" />
+                <div class="form-text">Controls row order on the receipt.</div>
+            </div>
+        </div>
+
+        <div class="mt-4 d-flex gap-2">
+            <button type="submit" class="btn btn-success">
+                <i class="bi bi-check-lg me-1"></i> Add Particular
+            </button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
