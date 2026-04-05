@@ -53,11 +53,21 @@ namespace SocietyApp.Services
             var code    = (society?.SocietyCode ?? "SOC").ToUpper();
             var year    = receiptDate.Year;
             var month   = receiptDate.Month;
-            var count   = await _db.Receipts.CountAsync(
-                              r => r.SocietyId == societyId &&
-                                   r.ReceiptDate.Year  == year &&
-                                   r.ReceiptDate.Month == month) + 1;
-            return $"{code}-{year}-{month:D2}-{count:D3}";
+            var prefix  = $"{code}-{year}-{month:D2}-";
+ 
+            // Find the highest existing serial for this society/year/month.
+            // Using MAX on the suffix avoids gaps caused by deletions.
+            var lastNumber = await _db.Receipts
+                .Where(r => r.SocietyId == societyId && r.ReceiptNumber.StartsWith(prefix))
+                .Select(r => r.ReceiptNumber)
+                .ToListAsync();
+ 
+            var nextSerial = lastNumber
+                .Select(n => int.TryParse(n[prefix.Length..], out var s) ? s : 0)
+                .DefaultIfEmpty(0)
+                .Max() + 1;
+ 
+            return $"{prefix}{nextSerial:D3}";
         }
 
         // Helper: convert amount to words (Indian number system)
