@@ -30,7 +30,7 @@ namespace SocietyApp.Services
 
         public async Task<Receipt> CreateAsync(Receipt receipt, List<ReceiptLineItem> lineItems)
         {
-            receipt.ReceiptNumber = await GenerateReceiptNumberAsync(receipt.SocietyId);
+            receipt.ReceiptNumber = await GenerateReceiptNumberAsync(receipt.SocietyId, receipt.ReceiptDate);
             receipt.TotalAmount = lineItems.Sum(l => l.Amount);
             // Assign via navigation property — EF inserts both Receipt and LineItems
             // in one SaveChangesAsync, avoiding the double-insert caused by adding
@@ -47,13 +47,17 @@ namespace SocietyApp.Services
             if (r != null) { _db.Receipts.Remove(r); await _db.SaveChangesAsync(); }
         }
 
-        private async Task<string> GenerateReceiptNumberAsync(int societyId)
+        private async Task<string> GenerateReceiptNumberAsync(int societyId, DateTime receiptDate)
         {
             var society = await _db.Societies.FindAsync(societyId);
-            var year = DateTime.Now.Year.ToString()[2..];
-            var count = await _db.Receipts.CountAsync(r => r.SocietyId == societyId) + 1;
-            var prefix = (society?.SocietyCode ?? "SOC")[..Math.Min(3, (society?.SocietyCode ?? "SOC").Length)].ToUpper();
-            return $"{prefix}-{year}-{count:D4}";
+            var code    = (society?.SocietyCode ?? "SOC").ToUpper();
+            var year    = receiptDate.Year;
+            var month   = receiptDate.Month;
+            var count   = await _db.Receipts.CountAsync(
+                              r => r.SocietyId == societyId &&
+                                   r.ReceiptDate.Year  == year &&
+                                   r.ReceiptDate.Month == month) + 1;
+            return $"{code}-{year}-{month:D2}-{count:D3}";
         }
 
         // Helper: convert amount to words (Indian number system)
